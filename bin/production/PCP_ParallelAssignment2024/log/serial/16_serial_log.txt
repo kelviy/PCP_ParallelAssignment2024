@@ -1,0 +1,4 @@
+Rows: 16, Columns: 16
+Simulation complete, writing image...
+Number of steps to stable state: 67
+Time: 2 ms
