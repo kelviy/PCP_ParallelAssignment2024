@@ -5,7 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class ParallelSimulation {
-    static final boolean DEBUG=false;//for debugging output, off
+    //debugging flag
+    static final boolean DEBUG=false;
 
     //timers - in milliseconds
     static long startTime = 0;
@@ -18,7 +19,7 @@ public class ParallelSimulation {
         endTime=System.currentTimeMillis();
     }
 
-
+    // generate array from csv
     public static int [][] readArrayFromCSV(String filePath) {
         int [][] array = null;
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
@@ -67,7 +68,7 @@ public class ParallelSimulation {
             System.out.printf("starting config: %d \n",counter);
             grid.printGrid();
         }
-        while(grid.update()) {
+        while(grid.update2()) {      //calculations, till sand pile stabilises.
             if(DEBUG) {
                 System.out.printf("starting config: %d \n",counter);
                 grid.printGrid();
@@ -76,12 +77,13 @@ public class ParallelSimulation {
         }
         tock();
 
+        // Output
         System.out.println("Simulation complete, writing image...");
         grid.gridToImage(outputFileName); //write grid as an image - you must do this.
         //Do NOT CHANGE below!
-        //simulation details - you must keep these lines at the end of the output in the parallel versions      	System.out.printf("\t Rows: %d, Columns: %d\n", simulationGrid.getRows(), simulationGrid.getColumns());
+        //simulation details - you must keep these lines at the end of the output in the parallel versions
         System.out.printf("Number of steps to stable state: %d \n",counter);
-        System.out.printf("Time: %d ms\n",endTime - startTime );			/*  Total computation time */
+        System.out.printf("Time: %d ms\n",endTime - startTime );	// Total computation time
 
 
     }

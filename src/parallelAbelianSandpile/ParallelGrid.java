@@ -4,11 +4,13 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ForkJoinPool;
 
 public class ParallelGrid {
 
     private int rows, columns;
+    // serial index size of grid
     private int serialIndex;
     private int [][] grid;
     private int [][] updateGrid;
@@ -18,7 +20,8 @@ public class ParallelGrid {
     public ParallelGrid(int[][] newGrid) {
         rows = newGrid.length+2; //for the "sink" border
         columns = newGrid[0].length+2; //for the "sink" border
-        serialIndex = newGrid.length * newGrid[0].length;
+
+        serialIndex = newGrid.length * newGrid[0].length; // size of serial index
 
         grid = new int[this.rows][this.columns];
         updateGrid=new int[this.rows][this.columns];
@@ -31,7 +34,8 @@ public class ParallelGrid {
             }
         }
 
-        //don't copy over sink border
+        // copying over grid information
+        //- 1 for not copying over sink border
         for(int i=1; i<rows-1; i++ ) {
             for( int j=1; j<columns-1; j++ ) {
                 this.grid[i][j]=newGrid[i-1][j-1];
@@ -40,7 +44,7 @@ public class ParallelGrid {
     }
 
 
-    //for the next timestep - copy updateGrid into grid
+    //for the next time step - copy updateGrid into grid
     public void nextTimeStep() {
         for(int i=1; i<rows-1; i++ ) {
             for( int j=1; j<columns-1; j++ ) {
@@ -49,9 +53,21 @@ public class ParallelGrid {
         }
     }
 
-    //key method to calculate the next update grod
+    //key method to calculate the next update grid
     public boolean update() {
+
+        // invoke returns change flag which determines when sand pile stabilises
         if (fjPool.invoke(new ParallelArraySum(grid, updateGrid, 0, serialIndex))) {
+            nextTimeStep();
+            return true;
+        }
+        return false;
+    }
+
+    // experimental calculation update grid
+    public boolean update2() {
+        // invoke returns change flag which determines when sand pile stabilises
+        if (fjPool.invoke(new ParallelColumn(1, grid.length-1,1,grid[0].length-1, grid, updateGrid))) {
             nextTimeStep();
             return true;
         }
@@ -80,6 +96,8 @@ public class ParallelGrid {
         for( j=1; j<columns-1; j++ ) System.out.printf("  --");
         System.out.printf("+\n\n");
     }
+
+    // create image from grid information
     public void gridToImage(String fileName) {
         try {
             BufferedImage dstImage =
